@@ -14,17 +14,19 @@ func startRepl(cfg *config) {
 	for {
 		fmt.Print("Pokedex > ")
 		scanner.Scan()
+		var args *string
 		
 		userMsg := cleanInput(scanner.Text())
 		if len(userMsg) == 0 {
 			continue
+		} else if len(userMsg) > 1 {
+			args = &userMsg[1]
 		}
 		
 		commandName := userMsg[0]
-		
 		command, ok := getCommands()[commandName]
 		if ok {
-			err := command.callback(cfg)
+			err := command.callback(cfg, args)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -39,13 +41,14 @@ func startRepl(cfg *config) {
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(*config) error
+	callback    func(*config, *string) error
 }
 
 type config struct {
-	pokeapiClient 		 pokeapi.Client
+	pokeapiClient 	 pokeapi.Client
 	nextLocationUrl	 *string
 	prevLocationUrl  *string
+	pokedex 		 *pokeapi.Pokedex
 }
 
 func cleanInput(text string) []string {
@@ -68,8 +71,33 @@ func getCommands() map[string]cliCommand {
 		},
 		"map": {
 			name: 		 "map",
-			description: "Displays the map",
+			description: "Displays the next map",
 			callback: commandMap,
+		},
+		"mapb": {
+			name: 		 "mapb",
+			description: "Displays the last map",
+			callback: commandMapb,
+		},
+		"explore": {
+			name: 		"explore <area>",
+			description: "Displays all the pokemon in the area",
+			callback: commandExplore,
+		},
+		"catch": {
+			name: "catch <pokemon>",
+			description: "catch",
+			callback: commandCatch,
+		},
+		"inspect": {
+			name: "inspect <pokemon>",
+			description: "inspect",
+			callback: commandInspect,
+		},
+		"pokedex": {
+			name: "pokedex",
+			description: "show all pokemons",
+			callback: commandPokedex,
 		},
 	}
 }
